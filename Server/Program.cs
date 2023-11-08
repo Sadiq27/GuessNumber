@@ -16,8 +16,6 @@ Socket serverSocket = new Socket(
 serverSocket.Bind(endPoint);
 serverSocket.Listen(backlog: 5);
 
-serverSocket.Accept();
-
 while (true)
 {
     Socket clientSocket = await serverSocket.AcceptAsync();
@@ -59,6 +57,8 @@ while (true)
                     attempts--;
                 }
             }
+            var gameOverMessageInBytes = Encoding.Unicode.GetBytes("Game over. The hidden number was: " + randomNum);
+            await clientSocket.SendAsync(gameOverMessageInBytes);
         }
         catch (SocketException)
         {
@@ -70,7 +70,5 @@ while (true)
         }
     }, clientSocket, false);
 
-    var gameOverMessage = "Game over. The hidden number was: " + randomNum;
-    var gameOverMessageInBytes = Encoding.Unicode.GetBytes(gameOverMessage);
-    await clientSocket.SendAsync(gameOverMessageInBytes);
+    
 }

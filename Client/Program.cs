@@ -15,27 +15,54 @@ Socket clientSocket = new Socket(
 
 await clientSocket.ConnectAsync(endPoint);
 
-try
-{
-    Console.WriteLine("Write message and press 'enter' to send...\n\n");
-    while (true)
-    {
-        string message = Console.ReadLine() ?? string.Empty;
-        var messageInBytes = Encoding.Unicode.GetBytes(message);
 
-        await clientSocket.SendAsync(messageInBytes);
+byte[] buffer = new byte[1024];
+ThreadPool.QueueUserWorkItem(async (obj) =>
+{
+    try
+    {
+        while (true)
+        {
+            var size = await clientSocket.ReceiveAsync(buffer);
+
+            var msg = Encoding.Unicode.GetString(buffer, 0, size);
+            Console.WriteLine($@"Server: ""{msg}""");
+        }
     }
-}
-catch (SocketException)
-{
-    Console.WriteLine("Disconnected from server!");
-    Environment.Exit(0);
-}
-catch (Exception ex)
-{
-    Console.WriteLine("System error: " + ex);
-}
-finally
-{
-    clientSocket.Dispose();
-}
+    catch (SocketException)
+    {
+        Console.WriteLine("Disconnected from server!");
+        Environment.Exit(0);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("System error: " + ex);
+    }
+}, null);
+
+
+    try
+    {
+        Console.Write("Guess the number: ");
+        while (true)
+        {
+            string message = Console.ReadLine() ?? string.Empty;
+            var messageInBytes = Encoding.Unicode.GetBytes(message);
+
+            await clientSocket.SendAsync(messageInBytes);
+        }
+    }
+    catch (SocketException)
+    {
+        Console.WriteLine("Disconnected from server!");
+        Environment.Exit(0);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("System error: " + ex);
+    }
+    finally
+    {
+        clientSocket.Dispose();
+    }
+
